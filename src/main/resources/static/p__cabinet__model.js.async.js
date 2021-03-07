@@ -1,0 +1,1 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([[6],{Flsd:function(e,t,a){"use strict";a.r(t);var s=a("MVZn"),n=a.n(s);t["default"]={namespace:"cabinetModel",state:{resCabinet:[],page:0,size:5,totalElements:0,totalPages:0},subscriptions:{},effects:{},reducers:{updateState(e,t){var a=t.payload;return n()({},e,a)}}}}}]);
