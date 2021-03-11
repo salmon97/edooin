@@ -24,4 +24,7 @@ public interface TeacherRepository extends JpaRepository<Teacher, UUID> {
 //    @Modifying
 //    @Query(value = "DELETE FROM groups_teachers where teacher_id = :id", nativeQuery = true)
 //    int deleteTea(UUID id);
+
+    @Query(value = "select count(*) from users u , teacher t where t.user_id = u.id and u.edu_center_id = :id", nativeQuery = true)
+    Integer getTeacherCount(Integer id);
 }

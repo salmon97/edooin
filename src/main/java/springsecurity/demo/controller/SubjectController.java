@@ -67,21 +67,4 @@ public class SubjectController {
         List<Subject> allByEduCenter_id = subjectRepository.findAllByEduCenter_Id(user.getEduCenter().getId());
         return ResponseEntity.ok(new ApiResponse("ok", true, allByEduCenter_id));
     }
-
-//    public void hous() {
-//        for (int i = 1; i <= 24; i++) {
-//            Hour hour = new Hour();
-//            Hour hour1 = new Hour();
-//            if (i < 10) {
-//                hour.setName("0" + i + ":00");
-//                hour1.setName("0" + i + ":30");
-//            } else {
-//                hour.setName(i + ":00");
-//                hour1.setName(i + ":30");
-//            }
-//            hourRepository.save(hour);
-//            hourRepository.save(hour1);
-//        }
-//
-//    }
 }
