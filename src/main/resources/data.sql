@@ -8,5 +8,6 @@ insert into role(role_name)values
 insert into edu_center (name,active,admission_code,balance,namellc) values ('edoo',true ,'123456',0,'llc');
 insert into region (name) values ('Andijon');
 insert into district (name,region_id) values ('Asaka',1),('paytug',1),('xonabod',1);
-insert into week (name) values ('Monday'),('Tuesday'),('Wednesday'),
+insert into week_days (name) values ('Monday'),('Tuesday'),('Wednesday'),
 ('Thursday'),('Friday'),('Saturday'),('Sunday');
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

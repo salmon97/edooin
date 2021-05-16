@@ -10,7 +10,6 @@ import springsecurity.demo.entity.User;
 import springsecurity.demo.payload.ApiResponse;
 import springsecurity.demo.payload.ReqSubject;
 import springsecurity.demo.repository.EduCenterRepository;
-import springsecurity.demo.repository.HourRepository;
 import springsecurity.demo.repository.SubjectRepository;
 import springsecurity.demo.security.CurrentUser;
 
@@ -28,13 +27,12 @@ public class SubjectController {
     final
     EduCenterRepository eduCenterRepository;
 
-    final
-    HourRepository hourRepository;
+//    final
+//    HourRepository hourRepository;
 
-    public SubjectController(SubjectRepository subjectRepository, EduCenterRepository eduCenterRepository, HourRepository hourRepository) {
+    public SubjectController(SubjectRepository subjectRepository, EduCenterRepository eduCenterRepository) {
         this.subjectRepository = subjectRepository;
         this.eduCenterRepository = eduCenterRepository;
-        this.hourRepository = hourRepository;
     }
 
 

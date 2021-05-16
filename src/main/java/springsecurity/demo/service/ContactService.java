@@ -23,8 +23,11 @@ public class ContactService {
     ContactRepository contactRepository;
 
     Contact addContact(ReqContact reqContact) {
-        if (contactRepository.existsByEmailEqualsIgnoreCase(reqContact.getEmail())) {
+        if (reqContact.getEmail().length() > 1 && contactRepository.existsByEmailEqualsIgnoreCase(reqContact.getEmail())) {
             throw new ExistException("like this email exist");
+        }
+        if (reqContact.getEmail().length()  == 0){
+            reqContact.setEmail(null);
         }
         return contactRepository.save(new Contact(
                 districtRepository.findById(reqContact.getDistrictId()).orElseThrow(() -> new ResourceNotFoundException("getDistrict")),

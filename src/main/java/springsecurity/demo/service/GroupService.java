@@ -11,6 +11,7 @@ import springsecurity.demo.entity.*;
 import springsecurity.demo.payload.*;
 import springsecurity.demo.repository.*;
 
+import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,10 @@ public class GroupService {
     final
     StJoinGroupRepository stJoinGroupRepository;
 
-    public GroupService(GroupRepository groupRepository, TeacherRepository teacherRepository, EduCenterRepository eduCenterRepository, SubjectRepository subjectRepository, StudentRepository studentRepository, StudentService studentService, StJoinGroupRepository stJoinGroupRepository) {
+    final
+    WeekDaysRepository weekDaysRepository;
+
+    public GroupService(GroupRepository groupRepository, TeacherRepository teacherRepository, EduCenterRepository eduCenterRepository, SubjectRepository subjectRepository, StudentRepository studentRepository, StudentService studentService, StJoinGroupRepository stJoinGroupRepository, WeekDaysRepository weekDaysRepository) {
         this.groupRepository = groupRepository;
         this.teacherRepository = teacherRepository;
         this.eduCenterRepository = eduCenterRepository;
@@ -46,6 +50,7 @@ public class GroupService {
         this.studentRepository = studentRepository;
         this.studentService = studentService;
         this.stJoinGroupRepository = stJoinGroupRepository;
+        this.weekDaysRepository = weekDaysRepository;
     }
 
 
@@ -92,26 +97,38 @@ public class GroupService {
 //        }
 //    }
 
-    public ApiResponse deleteChild(UUID groupId, UUID childId) {
+    public ApiResponse deleteChild(UUID groupId, Object childId) {
         Optional<Group> byId = groupRepository.findById(groupId);
         if (byId.isPresent()) {
             boolean b;
-            if (subjectRepository.existsById(childId)) {
-                b = byId.get().getSubject().removeIf(subject -> subject.getId().equals(childId));
-                byId.get().setSubject(byId.get().getSubject());
-                groupRepository.save(byId.get());
-                return new ApiResponse("subject", b, getSubjectByGrId(groupId));
+            try {
+                Integer id = Integer.valueOf(String.valueOf(childId));
+                if (weekDaysRepository.existsById(id)) {
+                    b = byId.get().getWeekDays().removeIf(weekDays -> weekDays.getId().equals(id));
+//                    byId.get().setWeekDays(byId.get().getWeekDays());
+                    groupRepository.save(byId.get());
+                    return new ApiResponse("weekdays", b, getResWeekDaysByGrId(groupId));
+                }
+            }catch (Exception e){
+                UUID uuid = UUID.fromString(String.valueOf(childId));
+                if (subjectRepository.existsById(uuid)) {
+                    b = byId.get().getSubject().removeIf(subject -> subject.getId().equals(uuid));
+//                    byId.get().setSubject(byId.get().getSubject());
+                    groupRepository.save(byId.get());
+                    return new ApiResponse("subject", b, getSubjectByGrId(groupId));
+                }
+                if (teacherRepository.existsById(uuid)) {
+                    b = byId.get().getTeacher().removeIf(teacher -> teacher.getId().equals(uuid));
+//                    byId.get().setTeacher(byId.get().getTeacher());
+                    groupRepository.save(byId.get());
+                    return new ApiResponse("teacher", b, getTeachersByGrId(groupId));
+                }
+                if (studentRepository.existsById(uuid)) {
+                    stJoinGroupRepository.deleteByStudent_IdAndGroup_Id(uuid, groupId);
+                    return new ApiResponse("student", true, studentService.getStudentIntoGrForStaff(groupId));
+                }
             }
-            if (teacherRepository.existsById(childId)) {
-                b = byId.get().getTeacher().removeIf(teacher -> teacher.getId().equals(childId));
-                byId.get().setTeacher(byId.get().getTeacher());
-                groupRepository.save(byId.get());
-                return new ApiResponse("teacher", b, getTeachersByGrId(groupId));
-            }
-            if (studentRepository.existsById(childId)) {
-                stJoinGroupRepository.deleteByStudent_IdAndGroup_Id(childId, groupId);
-                return new ApiResponse("student", true, studentService.getStudentIntoGrForStaff(groupId));
-            }
+
         }
         return new ApiResponse("no", false);
     }
@@ -123,6 +140,9 @@ public class GroupService {
             getGroup.setDirection(reqGroup.getDirection());
             getGroup.setGroupCode(reqGroup.getGroupCode());
             getGroup.setPrice(reqGroup.getPrice());
+            getGroup.setStartHour(Time.valueOf(reqGroup.getStartHour().length() > 6 && reqGroup.getStartHour().endsWith(":00") ? reqGroup.getStartHour() : reqGroup.getStartHour() + ":00"));
+            getGroup.setEndHour(Time.valueOf(reqGroup.getEndHour().length() > 6 && reqGroup.getEndHour().endsWith(":00") ? reqGroup.getEndHour() : reqGroup.getEndHour() + ":00"));
+            getGroup.setActive(reqGroup.isActive());
 //            getGroup.setWeekAndHour(reqGroup.getWeekAndHour());
             stJoinGroupRepository.findAllByGroup_Id(getGroup.getId()).forEach(stJoinGroup -> {
                 stJoinGroup.setPrice(getGroup.getPrice());
@@ -139,6 +159,10 @@ public class GroupService {
                 apiResponse.setObject(getTeachersByGrId(getGroup.getId()));
                 apiResponse.setMessage("teacher");
             }
+            if (!reqGroup.getWeekdaysId().isEmpty()) {
+                reqGroup.getWeekdaysId().forEach(integer -> getGroup.getWeekDays().add(weekDaysRepository.findById(integer).orElseThrow(() -> new ResourceNotFoundException("getWeekdays"))));
+                apiResponse.setMessage("weekdays");
+            }
             groupRepository.save(getGroup);
             return apiResponse;
         }
@@ -152,6 +176,7 @@ public class GroupService {
 
 
     public ApiResponse addGroup(ReqGroup reqGroup, User user) {
+
         if (!groupRepository.existsByGroupCode(reqGroup.getGroupCode() + "_" + user.getEduCenter().getName())) {
             EduCenter eduCenter = eduCenterRepository.findById(user.getEduCenter().getId()).orElseThrow(() -> new ResourceNotFoundException("getEdu"));
             Group group = new Group();
@@ -162,13 +187,15 @@ public class GroupService {
             group.setEduCenter(eduCenter);
             group.setSubject(subjectList(reqGroup));
             group.setTeacher(teachers(reqGroup));
-//            group.setWeekAndHour(reqGroup.getWeekAndHour());
+            group.setWeekDays(weekdays(reqGroup));
+            group.setStartHour(Time.valueOf(reqGroup.getStartHour().length() > 6 && reqGroup.getStartHour().endsWith(":00") ? reqGroup.getStartHour() : reqGroup.getStartHour() + ":00"));
+            group.setEndHour(Time.valueOf(reqGroup.getEndHour().length() > 6 && reqGroup.getEndHour().endsWith(":00") ? reqGroup.getEndHour() : reqGroup.getEndHour() + ":00"));
+            group.setActive(reqGroup.isActive());
             Group save = groupRepository.save(group);
             return new ApiResponse("ok", true, getGroup(save));
         }
         return new ApiResponse("like this is groupCode exist in your Groups ", false);
     }
-
 
     //Find by Id teachers which Staff choose
     public Set<Teacher> teachers(ReqGroup reqGroup) {
@@ -178,6 +205,16 @@ public class GroupService {
             teacherList.add(teacher1);
         }
         return teacherList;
+    }
+
+    //Find by Id Weekdays which Staff choose
+    public Set<WeekDays> weekdays(ReqGroup reqGroup) {
+        Set<WeekDays> weekDaysSet = new HashSet<>();
+        for (Integer id : reqGroup.getWeekdaysId()) {
+            WeekDays weekDays = weekDaysRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Weekdays"));
+            weekDaysSet.add(weekDays);
+        }
+        return weekDaysSet;
     }
 
     //Find by Id subjects which Staff choose
@@ -219,22 +256,33 @@ public class GroupService {
         return resTeachers;
     }
 
+    public List<ResWeekdays> getResWeekDaysByGrId(UUID id) {
+        List<WeekDays> allByGroupId = weekDaysRepository.getWeekDaysByGroupId(id);
+        List<ResWeekdays> resWeekDays = new ArrayList<>();
+        for (WeekDays weekDays : allByGroupId) {
+            resWeekDays.add(new ResWeekdays(weekDays.getId(), weekDays.getName()));
+        }
+        return resWeekDays;
+    }
+
 
     public ApiResponse getGroupForStudent(UUID studentId) {
         List<StJoinGroup> byStudent_id = stJoinGroupRepository.findByStudent_Id(studentId);
-        List<ResGroup> collect = byStudent_id.stream().map(stJoinGroup -> new ResGroup(stJoinGroup.getGroup().getId(), stJoinGroup.getGroup().getName(),stJoinGroup.getGroup().getPrice())).collect(Collectors.toList());
+        List<ResGroup> collect = byStudent_id.stream().map(stJoinGroup -> new ResGroup(stJoinGroup.getGroup().getId(), stJoinGroup.getGroup().getName(), stJoinGroup.getGroup().getPrice())).collect(Collectors.toList());
         return new ApiResponse("student", true, collect);
     }
 
-        public ResGroup getGroup(Group group) {
-            return new ResGroup(
-                    group.getId(),
-                    group.getName(),
-                    group.getGroupCode(),
-                    group.getDirection(),
-                    group.getCreatedAt().toString().substring(0, 10),
-                    group.getPrice()
-            );
-        }
-
+    public ResGroup getGroup(Group group) {
+        return new ResGroup(
+                group.getId(),
+                group.getName(),
+                group.getGroupCode(),
+                group.getDirection(),
+                group.getCreatedAt().toString().substring(0, 10),
+                group.getPrice(),
+                group.isActive(),
+                group.getStartHour(),
+                group.getEndHour()
+        );
+    }
 }

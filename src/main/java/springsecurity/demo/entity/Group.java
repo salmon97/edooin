@@ -1,5 +1,8 @@
 package springsecurity.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.sun.istack.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +10,7 @@ import lombok.Setter;
 import springsecurity.demo.entity.template.AbsEntity;
 
 import javax.persistence.*;
+import java.sql.Time;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,15 +46,22 @@ public class Group extends AbsEntity {
 
     private Double price;
 
-    private boolean openGroup;
-
     @Column(nullable = false, unique = true)
     private String groupCode;
 
-    @ElementCollection
-    private Map<String, String> weekAndHour;
-
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StJoinGroup> stJoinGroups;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Set<WeekDays> weekDays;
+
+
+//    @JsonFormat(pattern = "HH:mm:ss")
+    private Time startHour;
+
+//    @JsonFormat(pattern = "HH:mm:ss")
+    private Time endHour;
+
+    boolean active;
 
 }

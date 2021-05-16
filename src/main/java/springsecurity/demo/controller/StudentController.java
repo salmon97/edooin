@@ -87,7 +87,7 @@ public class StudentController {
     public Object[] getByRole(UUID id, User user) {
         for (Role role : user.getRoles()) {
             if (role.getRoleName().equals(RoleName.ROLE_STAFF) || role.getRoleName().equals(RoleName.ROLE_DIRECTOR))
-                return new Object[]{studentService.getStudentIntoGrForStaff(id), groupService.getSubjectByGrId(id), groupService.getTeachersByGrId(id)};
+                return new Object[]{studentService.getStudentIntoGrForStaff(id), groupService.getSubjectByGrId(id), groupService.getTeachersByGrId(id),groupService.getResWeekDaysByGrId(id)};
 
             if (role.getRoleName().equals(RoleName.ROLE_TEACHER))
                 return new Object[]{studentService.getStudentIntoGrForTea(id), groupService.getSubjectByGrId(id), null};

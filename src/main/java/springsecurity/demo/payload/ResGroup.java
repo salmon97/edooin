@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,9 @@ public class ResGroup {
     private String direction;
     private String createdAt;
     private double price;
+    private boolean active;
+    private Time startHour;
+    private Time endHour;
 
     public ResGroup(UUID id, String name,double price) {
         this.id = id;

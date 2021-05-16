@@ -54,7 +54,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/deleteChild")
-    public HttpEntity<?> deleteChild(@RequestParam(value = "groupId") UUID groupId, @RequestParam(value = "childId") UUID childId) {
+    public HttpEntity<?> deleteChild(@RequestParam(value = "groupId") UUID groupId, @RequestParam(value = "childId") Object childId) {
         ApiResponse apiResponse = groupService.deleteChild(groupId, childId);
         return ResponseEntity.status(apiResponse.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST).body(apiResponse);
     }

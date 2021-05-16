@@ -50,7 +50,7 @@ public class AttendanceService {
 //            attendanceByStudent.setTodayInLesson(!attendanceByStudent.isExplicable() ? reqServiceStudent.getTodayInLesson() : false);
         }
         if (!attendanceByStudent.isTodayPayed() && !attendanceByStudent.isExplicable()) {
-            takeMoney(stJoinGroup);
+//            takeMoney(stJoinGroup);
             attendanceByStudent.setTodayPayed(true);
         }
         attendanceRepository.save(attendanceByStudent);
@@ -70,7 +70,7 @@ public class AttendanceService {
             attendanceByStudent.setRelationToLesson(false);
         }
         if (attendanceByStudent.isTodayPayed()) {
-            cancelTakeMoney(stJoinGroup);
+//            cancelTakeMoney(stJoinGroup);
             attendanceByStudent.setTodayPayed(false);
         }
 //        attendanceByStudent.setTodayPayed();
