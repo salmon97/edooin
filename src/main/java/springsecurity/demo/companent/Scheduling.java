@@ -14,7 +14,7 @@ public class Scheduling {
     @Autowired
     TokenMoneyRepository tokenMoneyRepository;
 
-    @Scheduled(cron = "0 0/50 * * * ?")
+    @Scheduled(cron = "0 0/40 * * * ?")
     public void scheduling() {
         Integer i = tokenMoneyRepository.update_query();
         if (i > 1)
